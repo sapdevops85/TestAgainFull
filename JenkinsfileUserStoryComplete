@@ -1,0 +1,36 @@
+pipeline{
+    agent any
+    
+    stages{
+        stage('Release Merge'){
+	    steps{
+	        dir("C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python38-32") {
+		    
+                    bat "python merge.py.txt Development ${proj}"
+		    bat "python build.py.txt '${task}' '${trno}' '${user}' '${repo}' 'Release'"
+                } 
+	     }
+	}
+	stage('Release Test'){
+	    steps{
+	        dir("C:\\Users\\Administrator\\AppData\\Roaming\\npm") {
+		     
+                    bat 'newman run ATCCheckLegacy.json --environment Gw1Env.postman_environment.json'
+             }
+             dir("C:\\Users\\Administrator\\AppData\\Roaming\\npm") {
+                    bat "newman run abap_unit_coverage.json --environment Gw1Env.postman_environment.json"
+            }
+        }
+        
+        }
+	stage('Release TOC'){
+	    steps{
+	        dir("C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python38-32") {
+		    bat "python finalRelease.py.txt ${task} ${trno} ${user} "
+                    bat "python releaseTOC.py.txt ${branch} ${proj}"
+                } 
+	     }
+	}
+        
+    }
+}
